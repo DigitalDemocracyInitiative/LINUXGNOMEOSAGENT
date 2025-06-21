@@ -66,10 +66,62 @@ def process_text():
         if generated_text.startswith(full_prompt):
             generated_text = generated_text[len(full_prompt):].strip()
 
-        return jsonify({"generated_text": generated_text}), 200
+        # Action detection logic
+        requires_action = False
+        suggested_command = None
+
+        # Simple keyword matching for commands
+        # Prioritize simple detection patterns:
+        # "Open " followed by a common application name.
+        # "Launch " followed by a common application name.
+        # "Run `" followed by text ending with "`" (to capture specific shell commands).
+
+        lower_generated_text = generated_text.lower() # Use lower case for case-insensitive matching
+
+        common_apps = {
+            "firefox": "firefox",
+            "terminal": "gnome-terminal",
+            "nautilus": "nautilus", # File manager
+            "gedit": "gedit", # Text editor
+            "settings": "gnome-control-center",
+            "calendar": "gnome-calendar"
+        }
+
+        # Check for "Open <app>" or "Launch <app>"
+        for action_verb in ["open ", "launch "]:
+            if action_verb in lower_generated_text:
+                potential_app_name = generated_text[lower_generated_text.find(action_verb) + len(action_verb):].split(' ')[0].lower().strip('.,?!"\'')
+                if potential_app_name in common_apps:
+                    requires_action = True
+                    suggested_command = common_apps[potential_app_name]
+                    break
+            if requires_action:
+                break
+
+        # Check for "Run `command`"
+        if not requires_action and "run `" in lower_generated_text:
+            start_index = lower_generated_text.find("run `") + len("run `")
+            end_index = generated_text.find("`", start_index)
+            if end_index != -1:
+                command = generated_text[start_index:end_index]
+                # Basic validation: ensure command is not empty and does not contain another backtick
+                if command.strip() and '`' not in command:
+                    requires_action = True
+                    suggested_command = command.strip()
+
+        response_data = {"generated_text": generated_text}
+        if requires_action:
+            response_data["requires_action"] = True
+            response_data["suggested_command"] = suggested_command
+        else:
+            response_data["requires_action"] = False
+            # Omitting suggested_command when no action is required, or explicitly setting to None
+            # response_data["suggested_command"] = None
+
+        return jsonify(response_data), 200
     except Exception as e:
-        logging.error(f"Error during text generation: {e}")
-        return jsonify({"error": "Error during text generation."}), 500
+        logging.error(f"Error during text generation or action detection: {e}")
+        return jsonify({"error": "Error during text generation or action detection."}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False) # debug=False for production readiness

@@ -1,11 +1,13 @@
 'use strict';
 
-const { GObject, St, Clutter, GLib } = imports.gi;
+const { GObject, St, Clutter, GLib, Gio } = imports.gi; // Added Gio
 const Soup = imports.gi.Soup;
 
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
+const ModalDialog = imports.ui.modalDialog; // Added ModalDialog
+const Util = imports.misc.util; // Added Util for spawn
 
 var GnomeAIAssistant = GObject.registerClass(
 class GnomeAIAssistant extends PanelMenu.Button {
@@ -151,8 +153,21 @@ class GnomeAIAssistant extends PanelMenu.Button {
                     }
 
                     if (parsedResponse && parsedResponse.generated_text) {
-                        Main.notify('AI Response', parsedResponse.generated_text);
-                    } else {
+                        // Main.notify('AI Response', parsedResponse.generated_text); // Keep this for non-action responses or change as needed
+
+                        if (parsedResponse.requires_action === true && parsedResponse.suggested_command) {
+                            this._showConfirmationDialog(parsedResponse.generated_text, parsedResponse.suggested_command);
+                        } else {
+                            // If no action is required, just show the text response (if any)
+                            // This could be a setting or a different type of notification
+                            if (parsedResponse.generated_text) {
+                                Main.notify('AI Assistant', parsedResponse.generated_text);
+                            }
+                        }
+                    } else if (parsedResponse && parsedResponse.error) {
+                        Main.notifyError('AI Assistant Error', `Server error: ${parsedResponse.error}`);
+                    }
+                    else {
                         Main.notifyError('AI Assistant Error', 'Unexpected response format from server.');
                     }
                 } catch (e) {
@@ -163,6 +178,86 @@ class GnomeAIAssistant extends PanelMenu.Button {
 
             this._inputEntry.set_text(''); // Clear input after sending
         });
+    }
+
+    _showConfirmationDialog(aiResponse, suggestedCommand) {
+        try {
+            let dialog = new ModalDialog.ModalDialog({
+                styleClass: 'ai-assistant-dialog',
+                destroyOnClose: true
+            });
+
+            let content = new St.BoxLayout({ vertical: true, style_class: 'spacing' });
+            dialog.contentLayout.add_child(content);
+
+            let message = new St.Label({
+                text: `AI suggests: '${aiResponse}'.\nDo you want to execute: ${suggestedCommand}?`,
+                style_class: 'ai-assistant-dialog-message'
+            });
+            message.clutter_text.line_wrap = true; // Enable text wrapping
+            content.add_child(message);
+
+            dialog.addButton({
+                label: "Yes",
+                action: () => {
+                    this._executeCommand(suggestedCommand);
+                    dialog.close(); // Close after action
+                },
+                key: Clutter.KEY_Return // Optional: allow Enter to confirm
+            });
+
+            dialog.addButton({
+                label: "No",
+                action: () => {
+                    Main.notify("AI Assistant", "Command execution cancelled.");
+                    dialog.close();
+                },
+                key: Clutter.KEY_Escape // Optional: allow Escape to cancel
+            });
+
+            dialog.open();
+        } catch (e) {
+            Main.notifyError('AI Assistant Error', `Failed to show confirmation dialog: ${e.message}`);
+            logError(e, 'Error showing confirmation dialog');
+        }
+    }
+
+    _executeCommand(command) {
+        const appMap = {
+            "firefox": "firefox.desktop", // Assuming .desktop files are preferred for Gio.AppInfo
+            "gnome-terminal": "org.gnome.Terminal.desktop",
+            "nautilus": "org.gnome.Nautilus.desktop",
+            "gedit": "org.gnome.gedit.desktop",
+            "gnome-control-center": "gnome-control-center.desktop",
+            "gnome-calendar": "org.gnome.Calendar.desktop"
+        };
+
+        try {
+            if (appMap[command]) {
+                // Try to launch as a desktop application
+                let appInfo = Gio.DesktopAppInfo.new(appMap[command]);
+                if (appInfo) {
+                    appInfo.launch([], null); // null for GLib.AppLaunchContext
+                    Main.notify("AI Assistant", `Launched ${command}.`);
+                } else {
+                     // Fallback for simple names if .desktop lookup fails or for commands not in appMap that are simple executables
+                    Util.spawn(['xdg-open', command]); // A more generic way to open things
+                    Main.notify("AI Assistant", `Attempting to open ${command}.`);
+                }
+            } else {
+                // General shell command
+                // For security, be cautious with arbitrary command execution.
+                // Consider if pre-validation or sandboxing is needed for production.
+                // For now, splitting the command string into an array for Util.spawn.
+                // This basic split won't handle complex shell syntax like pipes or quotes within arguments.
+                let argv = ['/bin/sh', '-c', command]; // Wrap in sh -c to handle more complex commands
+                Util.spawn(argv);
+                Main.notify("AI Assistant", `Executed: ${command}`);
+            }
+        } catch (e) {
+            Main.notifyError('AI Assistant Error', `Failed to execute command '${command}': ${e.message}`);
+            logError(e, `Error executing command: ${command}`);
+        }
     }
 
     destroy() {
