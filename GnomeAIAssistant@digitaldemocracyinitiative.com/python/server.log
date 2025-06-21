@@ -1,0 +1,29 @@
+2025-06-21 04:08:14,901 - INFO - Model loading started...
+2025-06-21 04:08:14,901 - INFO - Model loading: 20%
+ * Serving Flask app 'app'
+ * Debug mode: off
+2025-06-21 04:08:14,907 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2025-06-21 04:08:14,907 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-21 04:08:15,403 - INFO - Model loading: 40%
+2025-06-21 04:08:15,432 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:15] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+2025-06-21 04:08:15,906 - INFO - Model loading: 60%
+2025-06-21 04:08:16,407 - INFO - Model loading: 80%
+2025-06-21 04:08:16,907 - INFO - Model loading: 100%
+2025-06-21 04:08:18,480 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:18] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+2025-06-21 04:08:21,538 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:21] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+2025-06-21 04:08:24,600 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:24] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+2025-06-21 04:08:27,634 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:27] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+2025-06-21 04:08:30,676 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:30] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+2025-06-21 04:08:33,777 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:33] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+2025-06-21 04:08:37,145 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:37] "[35m[1mPOST /process_text HTTP/1.1[0m" 503 -
+Device set to use cpu
+2025-06-21 04:08:37,148 - INFO - Model loaded successfully.
+Setting `pad_token_id` to `eos_token_id`:50256 for open-end generation.
+2025-06-21 04:08:44,096 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:44] "POST /process_text HTTP/1.1" 200 -
+Setting `pad_token_id` to `eos_token_id`:50256 for open-end generation.
+2025-06-21 04:08:51,281 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:51] "POST /process_text HTTP/1.1" 200 -
+Setting `pad_token_id` to `eos_token_id`:50256 for open-end generation.
+2025-06-21 04:08:54,053 - INFO - 127.0.0.1 - - [21/Jun/2025 04:08:54] "POST /process_text HTTP/1.1" 200 -
