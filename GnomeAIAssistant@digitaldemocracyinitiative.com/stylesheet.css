@@ -1,0 +1,91 @@
+/* stylesheet.css for GnomeAIAssistant */
+
+/* Pop-up Styling (PopupMessage/PopupMenuItem) */
+.popup-menu-item-actor { /* Assuming this is a class that can be targeted or a more specific selector is found via GNOME Shell's inspector */
+    /* Adwaita-like pop-up menu styling */
+}
+
+.popup-menu-content { /* A common class for popup content areas */
+    padding: 8px;
+    border-radius: 6px; /* Standard Adwaita rounded corners */
+    background-color: rgba(40, 40, 40, 0.9); /* Dark, slightly transparent background */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Depth effect */
+    color: #eeeeec; /* Light text color for contrast */
+    border: 1px solid rgba(0, 0, 0, 0.2); /* Subtle border */
+}
+
+/* Style for the main container within the popup, if one exists */
+/* This is a placeholder, actual class might differ. Use LookingGlass (Alt+F2, lg) to inspect */
+.assistant-popup-main-box {
+    spacing: 8px; /* Spacing between elements if using a Box layout */
+}
+
+/* Text Entry (St.Entry) */
+.assistant-input-entry { /* It's good practice to add a style class to your St.Entry */
+    background-color: rgba(25, 25, 25, 0.8); /* Darker background for entry */
+    color: #eeeeec; /* Light text */
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 10.5pt; /* Consistent with GNOME's default font size */
+    caret-color: #f27835; /* Orange caret, for visibility */
+    /* transition: background-color 0.2s, border-color 0.2s; */ /* Smooth transitions for focus (optional) */
+}
+
+.assistant-input-entry:focus {
+    border-color: #f27835; /* Adwaita focus color (often blue or orange) */
+    background-color: rgba(30, 30, 30, 0.9);
+}
+
+.assistant-input-entry StLabel { /* If there's a placeholder text */
+    color: #aaaaaa;
+}
+
+/* Button (St.Button) */
+.assistant-ask-button { /* Style class for the St.Button */
+    background-color: #3584e4; /* Adwaita blue for buttons */
+    color: white;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 10.5pt;
+    /* transition: background-color 0.2s; */ /* Smooth transitions */
+}
+
+.assistant-ask-button:hover {
+    background-color: #4a90e2; /* Slightly lighter blue on hover */
+}
+
+.assistant-ask-button:active {
+    background-color: #2a70cf; /* Darker blue when pressed */
+}
+
+/* If the button contains an icon and text, you might need to style them */
+.assistant-ask-button StIcon {
+    /* icon-size: 1em; */ /* Adjust if necessary */
+}
+
+.assistant-ask-button StLabel {
+    /* padding-left: 6px; */ /* If icon and label are together */
+}
+
+/* Panel Button Icon (St.Icon in Panel) */
+/* GNOME Shell typically handles panel icon scaling well, especially with symbolic icons.
+   If a specific class is applied to the panel icon, it can be targeted.
+   Example: .panel-button StIcon, or a custom class if you've set one.
+   Usually, no explicit CSS is needed if using a symbolic icon (e.g., -symbolic.svg)
+   and its size is managed by the panel itself.
+   If you are using a non-symbolic icon, ensure it has appropriate sizes or use SVG.
+*/
+.gnome-ai-assistant-panel-icon { /* Example if you add a style class to your panel button's icon */
+    /* icon-size: 16px; */ /* Or let the panel/theme decide */
+    /* color: #eeeeec; */ /* Panel icon color, often overridden by theme */
+}
+
+/* General advice for Adwaita-inspired design:
+   - Use symbolic icons where possible.
+   - Rely on GNOME Shell's default font sizes and spacing unless specific adjustments are needed.
+   - Test with both light and dark Adwaita themes if possible.
+   - Use LookingGlass (Alt+F2, then 'lg') to inspect elements and test CSS rules live.
+*/

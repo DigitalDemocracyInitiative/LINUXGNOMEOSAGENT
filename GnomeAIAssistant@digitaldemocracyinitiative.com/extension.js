@@ -19,22 +19,28 @@ class GnomeAIAssistant extends PanelMenu.Button {
         // Icon for the panel button
         let icon = new St.Icon({
             icon_name: 'edit-find-symbolic', // A generic icon, replace if you have a custom one
-            style_class: 'system-status-icon'
+            style_class: 'system-status-icon gnome-ai-assistant-panel-icon' // Added custom class for panel icon
         });
         this.add_child(icon);
 
         // PopupMenu item that will contain the input field and button
+        // The main container for our UI elements in the popup
         this._popupItem = new PopupMenu.PopupBaseMenuItem({ reactive: false, can_focus: false });
+        // Add a style class to the actor of PopupBaseMenuItem to apply popup-menu-content styles
+        this._popupItem.actor.add_style_class_name('popup-menu-content'); // Apply general popup styling
 
         // Horizontal box layout for entry and button
-        let boxLayout = new St.BoxLayout({ vertical: false, style_class: 'spacing' }); // Added a style_class for potential spacing
+        let boxLayout = new St.BoxLayout({
+            vertical: false,
+            style_class: 'assistant-popup-main-box' // Use class from CSS for spacing/layout
+        });
 
         // Input field
         this._inputEntry = new St.Entry({
             hint_text: 'Ask AI...',
             can_focus: true,
             x_expand: true, // Makes the entry expand
-            style_class: 'ai-assistant-input'
+            style_class: 'assistant-input-entry' // Apply class from CSS
         });
 
         // "Ask AI" button
@@ -42,7 +48,7 @@ class GnomeAIAssistant extends PanelMenu.Button {
             label: 'Ask AI',
             can_focus: true,
             reactive: true,
-            style_class: 'ai-assistant-button button' // Added 'button' for standard theming
+            style_class: 'assistant-ask-button' // Apply class from CSS
         });
 
         boxLayout.add_child(this._inputEntry);
