@@ -59,6 +59,43 @@ class GnomeAIAssistant extends PanelMenu.Button {
         });
     }
 
+    // Function to retrieve the active window title
+    _getActiveWindowTextAndTitle() {
+        let windowTitle = '';
+        try {
+            const focusWindow = global.display.focus_window;
+            if (focusWindow) {
+                windowTitle = focusWindow.get_title() || '';
+            }
+        } catch (e) {
+            logError(e, 'Error retrieving active window title');
+            windowTitle = ''; // Fallback to empty string in case of error
+        }
+
+        // TODO: Future Consideration - Retrieving full active window text.
+        // Direct screen scraping of arbitrary window content is generally not permitted
+        // in GNOME Shell extensions due to Wayland's security model, and also X11 depending on settings.
+        // Potential future approaches:
+        // 1. Integrate with specific applications that expose their content via D-Bus.
+        // 2. Rely more on clipboard content (already being implemented).
+        // 3. Accessibility APIs (e.g., AT-SPI) might offer some capabilities,
+        //    but this can be complex and have performance implications.
+
+        return windowTitle;
+    }
+
+    // Function to retrieve clipboard content
+    _getClipboardContent(callback) {
+        St.Clipboard.get_default().get_text(St.ClipboardType.CLIPBOARD, (clipboard, text) => {
+            if (text) {
+                callback(text);
+            } else {
+                // log('Clipboard is empty or content is not text.');
+                callback(''); // Pass empty string if clipboard is empty or not text
+            }
+        });
+    }
+
     _sendToBackend() {
         let text = this._inputEntry.get_text();
         if (!text.trim()) {
@@ -68,55 +105,64 @@ class GnomeAIAssistant extends PanelMenu.Button {
 
         this.menu.close(); // Close the menu after asking
 
-        let payload = {
-            text: text,
-            context: "" // Context is empty for now as per requirements
-        };
-        let payloadString = JSON.stringify(payload);
+        // Get active window title
+        const windowTitle = this._getActiveWindowTextAndTitle();
 
-        let message = Soup.Message.new_from_uri('POST', GLib.Uri.parse('http://127.0.0.1:5000/process_text', GLib.UriFlags.NONE));
-        if (!message) {
-            Main.notifyError('AI Assistant Error', 'Failed to create request message.');
-            return;
-        }
-
-        message.set_request_body_from_bytes('application/json', new GLib.Bytes(payloadString));
-
-        this._httpSession.queue_message(message, (session, response) => {
-            try {
-                if (response.get_status() !== Soup.Status.OK) {
-                    Main.notifyError('AI Assistant Error', `Request failed: ${response.get_reason_phrase()} (Status: ${response.get_status()})`);
-                    return;
+        // Get clipboard content (asynchronously)
+        this._getClipboardContent(clipboardContent => {
+            let payload = {
+                text: text,
+                context: {
+                    active_window_title: windowTitle,
+                    clipboard_content: clipboardContent
                 }
+            };
+            let payloadString = JSON.stringify(payload);
 
-                const bodyBytes = response.get_data();
-                if (!bodyBytes) {
-                    Main.notifyError('AI Assistant Error', 'Empty response from server.');
-                    return;
-                }
-
-                const responseBody = new TextDecoder().decode(bodyBytes.get_data());
-                let parsedResponse;
-                try {
-                    parsedResponse = JSON.parse(responseBody);
-                } catch (e) {
-                    Main.notifyError('AI Assistant Error', `Failed to parse response: ${e.message}`);
-                    logError(e, 'Failed to parse JSON response');
-                    return;
-                }
-
-                if (parsedResponse && parsedResponse.generated_text) {
-                    Main.notify('AI Response', parsedResponse.generated_text);
-                } else {
-                    Main.notifyError('AI Assistant Error', 'Unexpected response format from server.');
-                }
-            } catch (e) {
-                Main.notifyError('AI Assistant Error', `Error processing response: ${e.message}`);
-                logError(e, 'Error in _sendToBackend callback');
+            let message = Soup.Message.new_from_uri('POST', GLib.Uri.parse('http://127.0.0.1:5000/process_text', GLib.UriFlags.NONE));
+            if (!message) {
+                Main.notifyError('AI Assistant Error', 'Failed to create request message.');
+                return;
             }
-        });
 
-        this._inputEntry.set_text(''); // Clear input after sending
+            message.set_request_body_from_bytes('application/json', new GLib.Bytes(payloadString));
+
+            this._httpSession.queue_message(message, (session, response) => {
+                try {
+                    if (response.get_status() !== Soup.Status.OK) {
+                        Main.notifyError('AI Assistant Error', `Request failed: ${response.get_reason_phrase()} (Status: ${response.get_status()})`);
+                        return;
+                    }
+
+                    const bodyBytes = response.get_data();
+                    if (!bodyBytes) {
+                        Main.notifyError('AI Assistant Error', 'Empty response from server.');
+                        return;
+                    }
+
+                    const responseBody = new TextDecoder().decode(bodyBytes.get_data());
+                    let parsedResponse;
+                    try {
+                        parsedResponse = JSON.parse(responseBody);
+                    } catch (e) {
+                        Main.notifyError('AI Assistant Error', `Failed to parse response: ${e.message}`);
+                        logError(e, 'Failed to parse JSON response');
+                        return;
+                    }
+
+                    if (parsedResponse && parsedResponse.generated_text) {
+                        Main.notify('AI Response', parsedResponse.generated_text);
+                    } else {
+                        Main.notifyError('AI Assistant Error', 'Unexpected response format from server.');
+                    }
+                } catch (e) {
+                    Main.notifyError('AI Assistant Error', `Error processing response: ${e.message}`);
+                    logError(e, 'Error in _sendToBackend callback');
+                }
+            });
+
+            this._inputEntry.set_text(''); // Clear input after sending
+        });
     }
 
     destroy() {
