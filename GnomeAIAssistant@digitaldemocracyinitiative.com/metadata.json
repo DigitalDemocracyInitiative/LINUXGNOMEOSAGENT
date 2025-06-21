@@ -1,0 +1,9 @@
+{
+    "uuid": "GnomeAIAssistant@digitaldemocracyinitiative.com",
+    "name": "GNOME AI Assistant",
+    "description": "An AI-powered productivity tool for GNOME",
+    "shell-version": [
+        "46"
+    ],
+    "url": "https://github.com/DigitalDemocracyInitiative/LINUXGNOMEOSAGENT"
+}
